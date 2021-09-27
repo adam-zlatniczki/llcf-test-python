@@ -13,6 +13,8 @@ def zetas(X, Y, k=None, autoscale="minmax", verbose=False):
     :type Y: numpy.ndarray
     :param k: Neighbourhood size to use for the estimator. Ceil(sqrt(n)) by default.
     :type k: int
+    :param autoscale: How X and Y should be autoscaled. Can be either 'minmax' (default), 'rank' or None.
+    :type autoscale: str
     :param verbose: Indicates whether progress information should be printed. False by default.
     :type verbose: bool
     :return: zeta estimators for each point in X and Y, and k
@@ -36,8 +38,18 @@ def zetas(X, Y, k=None, autoscale="minmax", verbose=False):
     if verbose:
         print("Calculating zetas from X to Y...")
 
+    zeta_X = __local_zetas(X_prep, nn_J, k, verbose)
+
+    if verbose:
+        print("Calculating zetas from Y to X...")
+
+    zeta_Y = __local_zetas(Y_prep, nn_J, k, verbose)
+
+    return zeta_X, zeta_Y, k
+
+
+def __local_zetas(X_prep, nn_J, k, verbose=False):
     zeta_X = np.zeros(X_prep.shape[0])
-    zeta_Y = np.zeros(Y_prep.shape[0])
 
     for i in range(X_prep.shape[0]):
         if verbose and i % 10 == 0:
@@ -55,22 +67,4 @@ def zetas(X, Y, k=None, autoscale="minmax", verbose=False):
             except Exception:
                 zeta_X[i] = np.nan
 
-    if verbose:
-        print("Calculating zetas from Y to X...")
-    for i in range(Y_prep.shape[0]):
-        if verbose and i % 10 == 0:
-            print(i / Y_prep.shape[0])
-
-        if Y_prep.shape[1] == 1:
-            y_min = np.min(Y_prep[nn_J[i, :], 0])
-            y_max = np.max(Y_prep[nn_J[i, :], 0])
-            zeta_Y[i] = k / np.sum(np.logical_and(y_min <= Y_prep, Y_prep <= y_max))
-        else:
-            try:
-                cvxh = ConvexHull(Y_prep[nn_J[i, :], :], incremental=False)
-                A = np.dot(Y_prep, cvxh.equations[:, :-1].T) + cvxh.equations[:, -1].reshape(1, -1)
-                zeta_Y[i] = k / np.sum(np.sum(A <= 1e-10, axis=1) == cvxh.equations.shape[0])
-            except:
-                zeta_Y[i] = np.nan
-
-    return zeta_X, zeta_Y, k
+    return zeta_X
