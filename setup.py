@@ -11,9 +11,9 @@ setup(
     packages=['llcf_test'],
     license="MIT",
     install_requires=[
-        'numpy>=1.19.2',
-        'scipy>=1.5.2',
-        'pandas>=1.1.3',
-        'matplotlib>=3.3.2'
+        'numpy',
+        'scipy',
+        'pandas',
+        'matplotlib'
     ]
 )
