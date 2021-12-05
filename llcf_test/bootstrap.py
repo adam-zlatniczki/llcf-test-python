@@ -4,7 +4,7 @@ from llcf_test.zeta import zetas
 from llcf_test.util import normalize
 
 
-def conf_ints(X, Y, autoscale="minmax", bootstrap_iters=100, alpha=0.05, gamma=0.0):
+def conf_ints(X, Y, autoscale="minmax", bootstrap_iters=100, alpha=0.05, gamma=0.0, k=None, vareps=1e-10):
     """
     Construct a confidence interval of the gamma-trimmed mean of indicator functions. If 1 lies inside the confidence
     interval, then one can accept the null-hypothesis at alpha significance level.
@@ -39,11 +39,6 @@ def conf_ints(X, Y, autoscale="minmax", bootstrap_iters=100, alpha=0.05, gamma=0
 
     X_prep, Y_prep = normalize(X, Y, autoscale)
 
-    zeta_X, zeta_Y, k = zetas(X_prep, Y_prep)
-
-    prob_X = np.sum(zeta_X == 1.0) / zeta_X.shape[0]
-    prob_Y = np.sum(zeta_Y == 1.0) / zeta_Y.shape[0]
-
     p_zeta_eq_1 = np.zeros((bootstrap_iters, 2))
 
     for i in range(bootstrap_iters):
@@ -53,10 +48,10 @@ def conf_ints(X, Y, autoscale="minmax", bootstrap_iters=100, alpha=0.05, gamma=0
         X_boot = X_prep[unique_indices, :]
         Y_boot = Y_prep[unique_indices, :]
 
-        zeta_X, zeta_Y, k = zetas(X_boot, Y_boot, autoscale=None)
+        zeta_X, zeta_Y, k = zetas(X_boot, Y_boot, autoscale=None, k=k, vareps=vareps)
 
-        p_zeta_eq_1[i, 0] = stats.trim_mean(np.repeat(zeta_X, counts) == 1.0, gamma) - prob_X
-        p_zeta_eq_1[i, 1] = stats.trim_mean(np.repeat(zeta_Y, counts) == 1.0, gamma) - prob_Y
+        p_zeta_eq_1[i, 0] = stats.trim_mean(np.repeat(zeta_X, counts) == 1.0, gamma)
+        p_zeta_eq_1[i, 1] = stats.trim_mean(np.repeat(zeta_Y, counts) == 1.0, gamma)
 
-    return (prob_X + np.quantile(p_zeta_eq_1[:, 0], alpha), prob_X + np.quantile(p_zeta_eq_1[:, 0], 1-alpha)),\
-           (prob_Y + np.quantile(p_zeta_eq_1[:, 1], alpha), prob_Y + np.quantile(p_zeta_eq_1[:, 1], 1-alpha))
+    return (np.quantile(p_zeta_eq_1[:, 0], alpha/2.0), np.quantile(p_zeta_eq_1[:, 0], 1-alpha/2.0)),\
+           (np.quantile(p_zeta_eq_1[:, 1], alpha/2.0), np.quantile(p_zeta_eq_1[:, 1], 1-alpha/2.0))

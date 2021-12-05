@@ -3,7 +3,7 @@ from scipy.spatial import cKDTree, ConvexHull
 from llcf_test.util import normalize
 
 
-def zetas(X, Y, k=None, autoscale="minmax", verbose=False):
+def zetas(X, Y, k=None, autoscale="minmax", vareps=1e-10, verbose=False):
     """
     Calculate the local zeta estimators in both directions.
 
@@ -38,33 +38,37 @@ def zetas(X, Y, k=None, autoscale="minmax", verbose=False):
     if verbose:
         print("Calculating zetas from X to Y...")
 
-    zeta_X = __local_zetas(X_prep, nn_J, k, verbose)
+    zetas_X = __local_zetas(X_prep, nn_J, k, vareps, verbose)
 
     if verbose:
         print("Calculating zetas from Y to X...")
 
-    zeta_Y = __local_zetas(Y_prep, nn_J, k, verbose)
+    zetas_Y = __local_zetas(Y_prep, nn_J, k, vareps, verbose)
 
-    return zeta_X, zeta_Y, k
+    return zetas_X, zetas_Y, k
 
 
-def __local_zetas(X_prep, nn_J, k, verbose=False):
-    zeta_X = np.zeros(X_prep.shape[0])
+def __local_zetas(S_prep, I, k, vareps=1e-10, verbose=False):
+    zetas = np.zeros(S_prep.shape[0])
 
-    for i in range(X_prep.shape[0]):
+    for i in range(S_prep.shape[0]):
         if verbose and i % 10 == 0:
-            print(i / X_prep.shape[0])
+            print(i / S_prep.shape[0])
 
-        if X_prep.shape[1] == 1:
-            x_min = np.min(X_prep[nn_J[i, :], 0])
-            x_max = np.max(X_prep[nn_J[i, :], 0])
-            zeta_X[i] = k / np.sum(np.logical_and(x_min <= X_prep, X_prep <= x_max))
+        if S_prep.shape[1] == 1:
+            s_min = np.min(S_prep[I[i, :], 0])
+            s_max = np.max(S_prep[I[i, :], 0])
+            zetas[i] = k / np.sum(np.logical_and(s_min <= S_prep, S_prep <= s_max))
         else:
             try:
-                cvxh = ConvexHull(X_prep[nn_J[i, :], :], incremental=False)
-                A = np.dot(X_prep, cvxh.equations[:, :-1].T) + cvxh.equations[:, -1].reshape(1, -1)
-                zeta_X[i] = k / np.sum(np.sum(A <= 1e-10, axis=1) == cvxh.equations.shape[0])
-            except Exception:
-                zeta_X[i] = np.nan
+                cvxh = ConvexHull(S_prep[I[i, :], :], incremental=False)
 
-    return zeta_X
+                # Intentionally adding the offset, because QuickHull automatically multiplies it by -1
+                E = np.dot(S_prep, cvxh.equations[:, :-1].T) + cvxh.equations[:, -1].reshape(1, -1)
+
+                zetas[i] = k / np.sum(np.sum(E <= vareps, axis=1) == cvxh.equations.shape[0])
+            except Exception as e:
+                zetas[i] = np.nan
+                print(e)
+
+    return zetas
