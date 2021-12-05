@@ -33,7 +33,7 @@ def zetas(X, Y, k=None, autoscale="minmax", verbose=False):
 
     J_prep = np.concatenate((X_prep, Y_prep), axis=1)
     tree = cKDTree(J_prep)
-    _, nn_J = tree.query(J_prep, k=k)
+    _, nn_J = tree.query(J_prep, k=k, n_jobs=-1)
 
     if verbose:
         print("Calculating zetas from X to Y...")
