@@ -49,9 +49,21 @@ def conf_ints(X, Y, autoscale="minmax", bootstrap_iters=100, alpha=0.05, gamma=0
         Y_boot = Y_prep[unique_indices, :]
 
         zeta_X, zeta_Y, k = zetas(X_boot, Y_boot, autoscale=None, k=k, vareps=vareps)
+        zeta_X = np.repeat(zeta_X, counts)
+        zeta_Y = np.repeat(zeta_Y, counts)
 
-        p_zeta_eq_1[i, 0] = stats.trim_mean(np.repeat(zeta_X, counts) == 1.0, gamma)
-        p_zeta_eq_1[i, 1] = stats.trim_mean(np.repeat(zeta_Y, counts) == 1.0, gamma)
+        nan_index_X = np.isnan(zeta_X)
+        nan_index_Y = np.isnan(zeta_Y)
+
+        if np.sum(nan_index_X) == nan_index_X.shape[0]:
+            p_zeta_eq_1[i, 0] = np.nan
+        else:
+            p_zeta_eq_1[i, 0] = stats.trim_mean(zeta_X[~nan_index_X] == 1.0, gamma)
+
+        if np.sum(nan_index_Y) == nan_index_Y.shape[0]:
+            p_zeta_eq_1[i, 1] = np.nan
+        else:
+            p_zeta_eq_1[i, 1] = stats.trim_mean(zeta_Y[~nan_index_Y] == 1.0, gamma)
 
     return (np.quantile(p_zeta_eq_1[:, 0], alpha/2.0), np.quantile(p_zeta_eq_1[:, 0], 1-alpha/2.0)),\
            (np.quantile(p_zeta_eq_1[:, 1], alpha/2.0), np.quantile(p_zeta_eq_1[:, 1], 1-alpha/2.0))
