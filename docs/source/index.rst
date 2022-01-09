@@ -173,7 +173,12 @@ by noise.
 
 Dealing with noise
 ^^^^^^^^^^^^^^^^^^
-
+If analysis of the zeta histograms shows signs of a locally Lipschitz continuous mapping with some added noise, then
+we can approach it in the usual way: filter/reduce the noise. However, some thought should be given to the method of
+filtering. If there is some sort of relationship, then the joint space should be an embedding of a manifold that describes
+the relationship. Conceptually, the extra noise probably works on this manifold, distorting it. We should aim at methods
+that smooth the geometry itself. For example, local averaging is a simple, yet effective tool for such tasks. To see this
+in action, consider the following `Jupyter notebook <https://github.com/adam-zlatniczki/llcf-test-python/blob/main/notebooks/noise_analysis.ipynb>`_.
 
 Indices and tables
 ==================
