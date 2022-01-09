@@ -17,7 +17,7 @@ def zetas(X, Y, k=None, autoscale="minmax", vareps=1e-10, verbose=False):
     :type autoscale: str
     :param verbose: Indicates whether progress information should be printed. False by default.
     :type verbose: bool
-    :return: zeta estimators for each point in X and Y, and k
+    :return: zeta estimators for each point in X, Y, and k
     :rtype: numpy.ndarray, numpy.ndarray, int
     """
     if X.shape[0] != Y.shape[0]:
@@ -63,12 +63,12 @@ def __local_zetas(S_prep, I, k, vareps=1e-10, verbose=False):
             try:
                 cvxh = ConvexHull(S_prep[I[i, :], :], incremental=False)
 
-                # Intentionally adding the offset, because QuickHull automatically multiplies it by -1
+                # Intentionally ADDING the offset, because QuickHull automatically multiplies it by -1
                 E = np.dot(S_prep, cvxh.equations[:, :-1].T) + cvxh.equations[:, -1].reshape(1, -1)
 
                 zetas[i] = k / np.sum(np.sum(E <= vareps, axis=1) == cvxh.equations.shape[0])
             except Exception as e:
+                # QuickHull most likely raised an error due to running into a simple linear embedding.
                 zetas[i] = np.nan
-                print(e)
 
     return zetas
