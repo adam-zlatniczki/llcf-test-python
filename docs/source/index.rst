@@ -57,7 +57,7 @@ Using the test can be pretty straightforward. First, let's generate some sample 
    X = np.random.uniform(low=-1.0, high=1.0, size=n).reshape(-1,1)
    Y = 4*X**2 + 3
 
-Now we can construct the confidence intervals for the test as
+We can construct the confidence intervals for the test as
 
    >>> llcf_test.conf_ints(X, Y)
    ((1.0, 1.0), (0.0, 0.0020999999999999942))
@@ -66,8 +66,8 @@ The first tuple represents the confidence interval for testing :math:`Y = f(X)`,
 confidence interval for testing :math:`X = g(Y)`. We can see that 1 is inside the confidence interval in the first case,
 but not in the second. This means that at the (default) 0.05 significance level we accept the null-hypothesis that there
 exists a locally Lipschitz continuous function :math:`f` such that :math:`P(Y = f(X)) = 1`, and we reject the hypothesis
-that there exists a locally Lipschitz continuous :math:`g` such that :math:`P(X = g(Y)) = 1`. This matches perfectly our
-expectations.
+that there exists a locally Lipschitz continuous :math:`g` such that :math:`P(X = g(Y)) = 1`. This matches our
+expectations perfectly.
 
 Effect of normalization
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -86,7 +86,7 @@ Let's say we have a hunch that rank normalization would help - running the test 
   >>> llcf_test.conf_ints(X, Y, autoscale="rank")
   ((0.96995, 0.98805), (0.002, 0.013049999999999996))
 
-We can see that 1 is not inside the confidence intervals, so we would reject :math:`H_0` in both directions. The reason
+We can see that 1 is not inside the confidence intervals, so we reject :math:`H_0` in both directions. The reason
 why we arrive at a different conclusion this time is due to the "small" sample size, which makes rank normalization a
 too coarse approximation of the cumulative distribution function. Judging by the first confidence interval, it didn't do
 too bad of a job though - introducing some low level of tolerance should make it acceptable. Let's set
@@ -101,7 +101,7 @@ Normalization can really make a difference
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 In the simple examples before, the choice of normalization didn't really matter (apart from needing to specify some
 level of tolerance). However, here's an example dataset of a linear embedding from 2D to 3D where only one of the
-normalization methods can give us the proper answer
+normalization methods gives us the proper answer.
 
 .. code-block:: python
 
@@ -117,21 +117,22 @@ normalization methods can give us the proper answer
 Running our test with min-max scaling gives
 
 >>> llcf_test.conf_ints(X, Y, autoscale="minmax")
-((1.0, 1.0), (0.0, 0.0))
+((1.0, 1.0), (nan, nan))
 
 Based on these confidence intervals, it seems pointless to introduce tolerance. However, if we simply change to rank
 normalization we get
 
 >>> llcf_test.conf_ints(X, Y, autoscale="rank")
-((0.998, 1.0), (1.0, 1.0))
+((0.997475, 1.0), (0.998, 1.0))
 
 In this case, we can accept :math:`H_0` in both directions, we don't even need to allow tolerance.
 
 It may seem contradicting how a simple linear embedding couldn't be identified with min-max scaling. The reason is quite
 simple though: the qhull implementation of the high-dimensional QuickHull algorithm raises an error when the convex
 hull that it's building seems to be lower dimensional (in a linear sense) than the space itself. In such a case, a
-nonlinear scaling can help a lot - that's why rank normalization got the job done. The techniques discussed in the next
-section can help identifying such a case as well.
+nonlinear scaling can help a lot - that's why rank normalization got the job done. Another effect at work is that due to
+the sample size being small, rank normalization introduces some noise-like perturbation as well, widening the confidence
+intervals. The techniques discussed in the next section can help identifying such cases.
 
 Getting a better understanding of the local properties
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -146,6 +147,32 @@ In the linear embedding case above, we would see an error message, plus the hist
 indicating that the :math:`\hat{\zeta}` estimators could not be calculated - which happens when *qhull* ran into an
 issue.
 
+To see the histograms work, let's generate a noisy quadratic relationship
+
+.. code-block:: python
+
+    np.random.seed(0)
+    n = 1000
+
+    X = np.random.normal(size=(n,1))
+    Y = 4*X + 3
+    Y +=  0.1*np.random.normal(size=(n,1))
+
+Running
+
+>>> llcf_test.plot_zeta_histograms(X, Y)
+
+should result in the following figure:
+
+.. figure:: figs/fig1.png
+   :scale: 100 %
+   :alt: Zeta histograms
+
+We can see that the zetas are skewed towards 1.0, indicating the possible existence of some sort of relationship, masked
+by noise.
+
+Dealing with noise
+^^^^^^^^^^^^^^^^^^
 
 
 Indices and tables
