@@ -3,14 +3,24 @@ from llcf_test.zeta import zetas
 import numpy as np
 
 
-def __add_zeta_histograms_to_axes(X, Y, axis1, axis2, autoscale="minmax", max_bins=15):
+def __add_zeta_histograms_to_axes(X, Y, axis1, axis2, autoscale="minmax", max_bins=15, titles=None, xlabels=None, ylabels=None):
     zeta_X, zeta_Y, _ = zetas(X, Y, autoscale=autoscale)
 
-    axis1.set_title("Zeta distribution (X to Y)")
     axis1.set_xlim(left=0.0, right=1.1)
+    if titles is not None:
+        axis1.set_title(titles[0])
+    if xlabels is not None:
+        axis1.set_xlabel(xlabels[0])
+    if ylabels is not None:
+        axis1.set_ylabel(ylabels[0])
 
-    axis2.set_title("Zeta distribution (Y to X)")
     axis2.set_xlim(left=0.0, right=1.1)
+    if titles is not None:
+        axis2.set_title(titles[1])
+    if xlabels is not None:
+        axis2.set_xlabel(xlabels[1])
+    if ylabels is not None:
+        axis2.set_ylabel(ylabels[1])
 
     # plot local zeta histogram for X
     values, counts = np.unique(zeta_X, return_counts=True)
@@ -51,10 +61,9 @@ def plot_zeta_histograms(X, Y, autoscale="minmax", max_bins=15):
     """
     fig, axes = plt.subplots(1, 2)
 
-    axes[0].set_title("Zeta distribution (X to Y)")
-    axes[1].set_title("Zeta distribution (Y to X)")
+    titles = ["Zeta distribution (X to Y)", "Zeta distribution (Y to X)"]
 
-    __add_zeta_histograms_to_axes(X, Y, axes[0], axes[1], autoscale, max_bins)
+    __add_zeta_histograms_to_axes(X, Y, axes[0], axes[1], autoscale, max_bins, titles=titles)
 
     return fig
 
