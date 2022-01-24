@@ -58,12 +58,12 @@ def conf_ints(X, Y, autoscale="minmax", bootstrap_iters=100, alpha=0.05, gamma=0
         if np.sum(nan_index_X) == nan_index_X.shape[0]:
             p_zeta_eq_1[i, 0] = np.nan
         else:
-            p_zeta_eq_1[i, 0] = stats.trim_mean(zeta_X[~nan_index_X] == 1.0, gamma)
+            p_zeta_eq_1[i, 0] = stats.trim_mean(zeta_X[~nan_index_X] == 1.0, gamma / 2.0)
 
         if np.sum(nan_index_Y) == nan_index_Y.shape[0]:
             p_zeta_eq_1[i, 1] = np.nan
         else:
-            p_zeta_eq_1[i, 1] = stats.trim_mean(zeta_Y[~nan_index_Y] == 1.0, gamma)
+            p_zeta_eq_1[i, 1] = stats.trim_mean(zeta_Y[~nan_index_Y] == 1.0, gamma / 2.0)
 
     return (np.quantile(p_zeta_eq_1[:, 0], alpha/2.0), np.quantile(p_zeta_eq_1[:, 0], 1-alpha/2.0)),\
            (np.quantile(p_zeta_eq_1[:, 1], alpha/2.0), np.quantile(p_zeta_eq_1[:, 1], 1-alpha/2.0))
