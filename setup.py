@@ -4,7 +4,7 @@ from distutils.core import setup
 
 setup(
     name='llcf-test',
-    version='1.0',
+    version='0.1',
     description='Statistical hypothesis test for the existence of a locally Lipschitz continuous function',
     author='Adam Zlatniczki',
     author_email='adam.zlatniczki@cs.bme.hu',
