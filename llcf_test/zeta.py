@@ -3,7 +3,7 @@ from scipy.spatial import cKDTree, ConvexHull
 from llcf_test.util import normalize
 
 
-def zetas(X, Y, k=None, autoscale="minmax", vareps=1e-10, verbose=False):
+def zetas(X, Y, k=None, autoscale="minmax", vareps=1e-10, p_norm=2, verbose=False):
     """
     Calculate the local zeta estimators in both directions.
 
@@ -15,6 +15,8 @@ def zetas(X, Y, k=None, autoscale="minmax", vareps=1e-10, verbose=False):
     :type k: int
     :param autoscale: How X and Y should be autoscaled. Can be either 'minmax' (default), 'rank' or None.
     :type autoscale: str
+    :param p_norm: The Minkowski p-norm to use in kNN search.
+    :type p_norm: int
     :param verbose: Indicates whether progress information should be printed. False by default.
     :type verbose: bool
     :return: zeta estimators for each point in X, Y, and k
@@ -33,7 +35,7 @@ def zetas(X, Y, k=None, autoscale="minmax", vareps=1e-10, verbose=False):
 
     J_prep = np.concatenate((X_prep, Y_prep), axis=1)
     tree = cKDTree(J_prep)
-    _, nn_J = tree.query(J_prep, k=k, n_jobs=-1)
+    _, nn_J = tree.query(J_prep, k=k, p=p_norm, n_jobs=-1)
 
     if verbose:
         print("Calculating zetas from X to Y...")
